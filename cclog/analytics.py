@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 # https://docs.anthropic.com/en/docs/about-claude/pricing (March 2026)
 # Cache reads cost 0.1x input price — most Claude Code tokens are cache reads
 MODEL_COSTS = {
+    "fable-5": {"input": 10.0, "cache_create": 12.50, "cache_read": 1.0, "output": 50.0},
     "opus-4.6": {"input": 5.0, "cache_create": 6.25, "cache_read": 0.50, "output": 25.0},
     "opus-4.5": {"input": 5.0, "cache_create": 6.25, "cache_read": 0.50, "output": 25.0},
     "opus-4.1": {"input": 15.0, "cache_create": 18.75, "cache_read": 1.50, "output": 75.0},
@@ -64,6 +65,8 @@ def get_model_cost(model_name: str) -> dict:
     if not model_name:
         return MODEL_COSTS["sonnet"]
     name = model_name.lower()
+    if "fable" in name:
+        return MODEL_COSTS["fable-5"]
     # Match specific opus versions
     if "opus" in name:
         if "4.6" in name or "4-6" in name:

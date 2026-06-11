@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 import unittest
 
-from cclog.analytics import filter_summaries_by_range
+from cclog.analytics import filter_summaries_by_range, get_model_cost
 
 
 class TimeRangeFilterTests(unittest.TestCase):
@@ -21,6 +21,14 @@ class TimeRangeFilterTests(unittest.TestCase):
         summaries = [{"session_id": "a"}, {"session_id": "b"}]
 
         self.assertEqual(filter_summaries_by_range(summaries, "all"), summaries)
+
+
+class ModelCostTests(unittest.TestCase):
+    def test_fable_models_use_fable_api_pricing(self):
+        self.assertEqual(
+            get_model_cost("claude-fable-5-20260610"),
+            {"input": 10.0, "cache_create": 12.50, "cache_read": 1.0, "output": 50.0},
+        )
 
 
 if __name__ == "__main__":
