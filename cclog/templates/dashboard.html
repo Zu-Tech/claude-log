@@ -4,7 +4,14 @@
 {% block content %}
 <div class="page-header">
     <h1>Dashboard</h1>
-    <p class="subtitle">Your Claude Code history at a glance</p>
+    <p class="subtitle">Your Claude Code history at a glance · {{ selected_range_label }}</p>
+    <nav class="time-range-bar" aria-label="Dashboard time range">
+        {% for option in range_options %}
+        <a href="/dashboard?range={{ option.key }}" class="{{ 'active' if selected_range == option.key }}">
+            {{ option.label }}
+        </a>
+        {% endfor %}
+    </nav>
     <button id="refresh-btn" class="btn-refresh" onclick="refreshSessions()" title="Scan for new conversations">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
         <span>Refresh</span>
@@ -24,7 +31,7 @@
     </div>
     <div class="stat-card">
         <div class="stat-value">${{ "%.2f" | format(overview.total_cost) }}</div>
-        <div class="stat-label">Est. Cost</div>
+        <div class="stat-label">Est. Cost · {{ selected_range_label }}</div>
         <div class="stat-glow"></div>
     </div>
     <div class="stat-card">
