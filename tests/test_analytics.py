@@ -22,6 +22,11 @@ class TimeRangeFilterTests(unittest.TestCase):
 
         self.assertEqual(filter_summaries_by_range(summaries, "all"), summaries)
 
+    def test_invalid_range_falls_back_to_all_time(self):
+        summaries = [{"session_id": "a"}, {"session_id": "b"}]
+
+        self.assertEqual(filter_summaries_by_range(summaries, "invalid-range"), summaries)
+
 
 class ModelCostTests(unittest.TestCase):
     def test_fable_models_use_fable_api_pricing(self):

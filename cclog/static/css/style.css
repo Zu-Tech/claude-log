@@ -116,6 +116,7 @@ button{font-family:inherit;cursor:pointer}
     margin-left:auto;display:inline-flex;align-items:center;gap:1px;
     background:var(--bg3);border:1px solid var(--bg3);padding:1px;
 }
+.time-range-bar + .btn-refresh{margin-left:0}
 .time-range-bar a{
     min-width:82px;text-align:center;padding:5px 10px;
     background:var(--bg1);color:var(--w4);font-size:0.72rem;

@@ -7,7 +7,7 @@
     <p class="subtitle">Your Claude Code history at a glance · {{ selected_range_label }}</p>
     <nav class="time-range-bar" aria-label="Dashboard time range">
         {% for option in range_options %}
-        <a href="/dashboard?range={{ option.key }}" class="{{ 'active' if selected_range == option.key }}">
+        <a href="/dashboard?range={{ option.key }}" class="{{ 'active' if selected_range == option.key }}"{% if selected_range == option.key %} aria-current="page"{% endif %}>
             {{ option.label }}
         </a>
         {% endfor %}
