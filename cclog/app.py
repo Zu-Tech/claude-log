@@ -172,9 +172,10 @@ def create_app(claude_home: Path | None = None) -> FastAPI:
         })
 
     @app.get("/dashboard", response_class=HTMLResponse)
-    async def dashboard(request: Request, range: str = "all"):
+    async def dashboard(request: Request):
         active = [s for s in summaries if not metadata.get(s["session_id"]).get("deleted")]
-        selected_range = range if range in analytics_mod.TIME_RANGES else "all"
+        range_param = request.query_params.get("range", "all")
+        selected_range = range_param if range_param in analytics_mod.TIME_RANGES else "all"
         range_options = [
             {"key": key, "label": option["label"]}
             for key, option in analytics_mod.TIME_RANGES.items()
