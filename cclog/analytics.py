@@ -1,12 +1,13 @@
 """Compute analytics from conversation summaries."""
 
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 # Cost per million tokens (input/output) by model
 # https://docs.anthropic.com/en/docs/about-claude/pricing (March 2026)
 # Cache reads cost 0.1x input price — most Claude Code tokens are cache reads
 MODEL_COSTS = {
+    "fable-5": {"input": 10.0, "cache_create": 12.50, "cache_read": 1.0, "output": 50.0},
     "opus-4.6": {"input": 5.0, "cache_create": 6.25, "cache_read": 0.50, "output": 25.0},
     "opus-4.5": {"input": 5.0, "cache_create": 6.25, "cache_read": 0.50, "output": 25.0},
     "opus-4.1": {"input": 15.0, "cache_create": 18.75, "cache_read": 1.50, "output": 75.0},
@@ -19,12 +20,53 @@ MODEL_COSTS = {
 
 SKIP_MODELS = {"<synthetic>", "synthetic", "", None}
 
+TIME_RANGES = {
+    "all": {"label": "All time", "days": None},
+    "30d": {"label": "30 days", "days": 30},
+    "7d": {"label": "7 days", "days": 7},
+}
+
+
+def _parse_started_at(summary: dict) -> datetime | None:
+    started_at = summary.get("started_at")
+    if not started_at:
+        return None
+    try:
+        dt = datetime.fromisoformat(str(started_at).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def filter_summaries_by_range(summaries: list[dict], range_key: str, now: datetime | None = None) -> list[dict]:
+    """Filter summaries to sessions that started inside the selected time window."""
+    option = TIME_RANGES.get(range_key, TIME_RANGES["all"])
+    days = option["days"]
+    if days is None:
+        return summaries
+
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    now = now.astimezone(timezone.utc)
+    cutoff = now - timedelta(days=days)
+
+    return [
+        summary
+        for summary in summaries
+        if (started := _parse_started_at(summary)) is not None and started >= cutoff
+    ]
+
 
 def get_model_cost(model_name: str) -> dict:
     """Get cost per million tokens for a model."""
     if not model_name:
         return MODEL_COSTS["sonnet"]
     name = model_name.lower()
+    if "fable" in name:
+        return MODEL_COSTS["fable-5"]
     # Match specific opus versions
     if "opus" in name:
         if "4.6" in name or "4-6" in name:

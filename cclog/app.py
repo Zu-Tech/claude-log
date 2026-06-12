@@ -174,14 +174,24 @@ def create_app(claude_home: Path | None = None) -> FastAPI:
     @app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard(request: Request):
         active = [s for s in summaries if not metadata.get(s["session_id"]).get("deleted")]
-        overview = analytics_mod.compute_overview(active)
-        recent = active[:8]
+        range_param = request.query_params.get("range", "all")
+        selected_range = range_param if range_param in analytics_mod.TIME_RANGES else "all"
+        range_options = [
+            {"key": key, "label": option["label"]}
+            for key, option in analytics_mod.TIME_RANGES.items()
+        ]
+        ranged_active = analytics_mod.filter_summaries_by_range(active, selected_range)
+        overview = analytics_mod.compute_overview(ranged_active)
+        recent = ranged_active[:8]
         recent_with_meta = [(s, metadata.get(s["session_id"])) for s in recent]
         return templates.TemplateResponse(request, "dashboard.html", {
             "overview": overview,
             "recent": recent_with_meta,
             "daily_json": json.dumps(overview["daily_activity"]),
             "heatmap_json": json.dumps(overview["heatmap"]),
+            "range_options": range_options,
+            "selected_range": selected_range,
+            "selected_range_label": analytics_mod.TIME_RANGES[selected_range]["label"],
             "active_nav": "dashboard",
         })
 
